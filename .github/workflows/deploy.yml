@@ -32,10 +32,14 @@ jobs:
       - run: npm ci
 
       # El base debe ser "/<nombre-del-repo>/". Lo derivamos automáticamente.
+      # Las credenciales de Supabase vienen de los Secrets del repo; se incrustan
+      # en el build para que la página desplegada trabaje en modo compartido.
       - name: Build
         run: npm run build
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - uses: actions/upload-pages-artifact@v4
         with:
