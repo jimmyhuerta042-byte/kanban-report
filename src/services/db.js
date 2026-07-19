@@ -44,6 +44,7 @@ const rowToTask = (r) => ({
   prevStatusEndAt: r.prev_status_end_at ?? null,
   gitlabUrl: r.gitlab_url ?? '',
   makahaUrl: r.makaha_url ?? '',
+  notes: r.notes ?? { content: '', updatedAt: null },
 })
 
 const taskToRow = (t) => ({
@@ -64,6 +65,7 @@ const taskToRow = (t) => ({
   prev_status_end_at: t.prevStatusEndAt ?? null,
   gitlab_url: t.gitlabUrl ?? '',
   makaha_url: t.makahaUrl ?? '',
+  notes: t.notes ?? { content: '', updatedAt: null },
 })
 
 /* ------------------------------ Carga inicial ------------------------------ */

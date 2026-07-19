@@ -15,7 +15,7 @@ import { useBoard } from '../../context/BoardContext'
  * Tablero Kanban completo con Drag & Drop entre columnas.
  * `tasks` recibe ya las tareas filtradas.
  */
-export function Board({ tasks, onAddTask, onEditTask, onDeleteTask }) {
+export function Board({ tasks, onAddTask, onEditTask, onDeleteTask, onNotesTask }) {
   const { statuses, moveTask } = useBoard()
   const [activeTask, setActiveTask] = useState(null)
 
@@ -74,6 +74,7 @@ export function Board({ tasks, onAddTask, onEditTask, onDeleteTask }) {
               onAddTask={onAddTask}
               onEditTask={onEditTask}
               onDeleteTask={onDeleteTask}
+              onNotesTask={onNotesTask}
             />
           ))}
         </div>

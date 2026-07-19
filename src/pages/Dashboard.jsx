@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Board } from '../components/kanban/Board'
 import { FilterBar } from '../components/filters/FilterBar'
 import { TaskModal } from '../components/modals/TaskModal'
+import { NotesModal } from '../components/modals/NotesModal'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { useBoard } from '../context/BoardContext'
 import { useToast } from '../context/ToastContext'
@@ -17,12 +18,17 @@ export function Dashboard() {
   const filtered = useFilteredTasks(tasks, filters)
 
   const [taskModal, setTaskModal] = useState({ open: false, task: null, statusId: null })
+  const [notesTaskId, setNotesTaskId] = useState(null)
   const [confirm, setConfirm] = useState({ open: false, task: null })
 
   const openNew = (statusId = null) =>
     setTaskModal({ open: true, task: null, statusId })
   const openEdit = (task) => setTaskModal({ open: true, task, statusId: null })
   const closeModal = () => setTaskModal({ open: false, task: null, statusId: null })
+
+  // Guardamos solo el id: así el modal siempre lee la versión viva de la tarea.
+  const openNotes = (task) => setNotesTaskId(task.id)
+  const notesTask = notesTaskId ? tasks.find((t) => t.id === notesTaskId) || null : null
 
   const handleExport = async () => {
     if (filtered.length === 0) {
@@ -68,6 +74,7 @@ export function Dashboard() {
             onAddTask={openNew}
             onEditTask={openEdit}
             onDeleteTask={(task) => setConfirm({ open: true, task })}
+            onNotesTask={openNotes}
           />
         )}
       </div>
@@ -77,6 +84,12 @@ export function Dashboard() {
         task={taskModal.task}
         defaultStatusId={taskModal.statusId}
         onClose={closeModal}
+      />
+
+      <NotesModal
+        open={Boolean(notesTask)}
+        task={notesTask}
+        onClose={() => setNotesTaskId(null)}
       />
 
       <ConfirmDialog

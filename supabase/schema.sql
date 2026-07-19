@@ -64,8 +64,13 @@ create table tasks (
   prev_status_id          text,
   prev_status_end_at      timestamptz,
   gitlab_url              text not null default '',
-  makaha_url              text not null default ''
+  makaha_url              text not null default '',
+  notes                   jsonb not null default '{"content":"","updatedAt":null}'::jsonb
 );
+
+-- Migración para bases existentes (si ya ejecutaste este schema antes y NO
+-- quieres recrearlo desde cero, ejecuta solo esta línea para añadir las notas):
+--   alter table tasks add column if not exists notes jsonb not null default '{"content":"","updatedAt":null}'::jsonb;
 
 -- Contador compartido para el 'code' autoincremental de las tareas.
 create table meta (
@@ -126,37 +131,38 @@ insert into projects (id, name, color) values
 insert into tasks
   (id, code, ticket, project_id, title, description, status_id, type_id,
    assignee_ids, created_at, backlog_at, current_status_start_at,
-   current_status_end_at, gitlab_url, makaha_url)
+   current_status_end_at, gitlab_url, makaha_url, notes)
 values
   ('tk-953', 953, '953', 'pr-lms',
    'Unify Search Functionality Across LMS', 'Course List, Catalog, My Courses.',
    'st-progress', 'ty-feature', '{as-1}',
-   now(), '2026-01-15T12:00:00Z', '2026-01-30T12:00:00Z', null, '', ''),
+   now(), '2026-01-15T12:00:00Z', '2026-01-30T12:00:00Z', null, '', '',
+   '{"content":"# Reunión con el PM\nUnificar el buscador en Catalog primero.\n\n- [x] Actualizar variables de traducción\n- [ ] Probar en My Courses\n\n!! Revisar el endpoint /api/search mañana","updatedAt":null}'::jsonb),
 
   ('tk-974', 974, '974', 'pr-lms',
    'Global catalog search bar styling issue', '',
    'st-testing', 'ty-bug', '{as-2}',
-   now(), '2026-01-20T12:00:00Z', '2026-01-30T12:00:00Z', null, '', ''),
+   now(), '2026-01-20T12:00:00Z', '2026-01-30T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb),
 
   ('tk-972', 972, '972', 'pr-course-cloud',
    'Old Certificate Generation Issues', '',
    'st-done', 'ty-bug', '{as-3}',
-   now(), '2025-12-21T12:00:00Z', '2026-01-28T12:00:00Z', null, '', ''),
+   now(), '2025-12-21T12:00:00Z', '2026-01-28T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb),
 
   ('tk-917', 917, '917', 'pr-lms-manager',
    'Enable Portal Admin and Supervisor Access to Learner Certificates',
    'Ensure Certificate Visibility.',
    'st-feedbackA', 'ty-feature', '{as-1,as-2}',
-   now(), '2025-12-15T12:00:00Z', '2025-12-15T12:00:00Z', null, '', ''),
+   now(), '2025-12-15T12:00:00Z', '2025-12-15T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb),
 
   ('tk-955', 955, '955', 'pr-lms',
    'Fix LMS Redirection After Session Timeout', '',
    'st-feedbackB', 'ty-bug', '{as-3}',
-   now(), '2025-12-15T12:00:00Z', '2025-12-15T12:00:00Z', null, '', ''),
+   now(), '2025-12-15T12:00:00Z', '2025-12-15T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb),
 
   ('tk-922', 922, '922', 'pr-lms-manager',
    'Sidebar facelift', 'Still in progress; preparing the Figma links.',
    'st-backlog', 'ty-improvement', '{as-1}',
-   now(), '2026-01-30T12:00:00Z', '2026-01-30T12:00:00Z', null, '', '');
+   now(), '2026-01-30T12:00:00Z', '2026-01-30T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb);
 
 insert into meta (id, next_code) values ('singleton', 975);

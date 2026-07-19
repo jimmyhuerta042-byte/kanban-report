@@ -54,6 +54,18 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: {
+        content: [
+          '# Reunión con el PM',
+          'Unificar el buscador en Catalog primero.',
+          '',
+          '- [x] Actualizar variables de traducción',
+          '- [ ] Probar en My Courses',
+          '',
+          '!! Revisar el endpoint /api/search mañana',
+        ].join('\n'),
+        updatedAt: created,
+      },
     },
     {
       id: 'tk-974',
@@ -71,6 +83,7 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: { content: '', updatedAt: null },
     },
     {
       id: 'tk-972',
@@ -88,6 +101,7 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: { content: '', updatedAt: null },
     },
     {
       id: 'tk-917',
@@ -105,6 +119,7 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: { content: '', updatedAt: null },
     },
     {
       id: 'tk-955',
@@ -122,6 +137,7 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: { content: '', updatedAt: null },
     },
     {
       id: 'tk-922',
@@ -139,6 +155,7 @@ export function buildSeedTasks() {
       currentStatusEndAt: null,
       gitlabUrl: '',
       makahaUrl: '',
+      notes: { content: '', updatedAt: null },
     },
   ]
 }

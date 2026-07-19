@@ -1,21 +1,24 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GitBranch, ExternalLink, Calendar, Pencil, Trash2 } from 'lucide-react'
+import { GitBranch, ExternalLink, Calendar, Pencil, Trash2, StickyNote } from 'lucide-react'
 import { useBoard } from '../../context/BoardContext'
 import { AssigneeChip } from '../ui/Badge'
 import { formatDate } from '../../utils/dates'
 import { withAlpha } from '../../utils/colors'
+import { hasContent, hasUrgent } from '../../utils/notes'
 import { cn } from '../../utils/cn'
 
 /**
  * Tarjeta de tarea del tablero. Arrastrable mediante dnd-kit.
  */
-export function TaskCard({ task, onEdit, onDelete, overlay = false }) {
+export function TaskCard({ task, onEdit, onDelete, onNotes, overlay = false }) {
   const { getType, getAssignees, getProject } = useBoard()
   const type = getType(task.typeId)
   const people = getAssignees(task.assigneeIds)
   const project = getProject(task.projectId)
   const ticketLabel = task.ticket?.trim() || `#${task.code}`
+  const notesFilled = hasContent(task.notes)
+  const notesUrgent = notesFilled && hasUrgent(task.notes)
 
   const {
     attributes,
@@ -100,6 +103,31 @@ export function TaskCard({ task, onEdit, onDelete, overlay = false }) {
         </span>
 
         <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              stop(e)
+              onNotes?.(task)
+            }}
+            onPointerDown={stop}
+            title={
+              notesUrgent
+                ? 'Notas · tiene pendientes urgentes'
+                : notesFilled
+                  ? 'Ver notas'
+                  : 'Añadir notas'
+            }
+            className={cn(
+              'relative flex h-6 w-6 items-center justify-center rounded-md transition',
+              notesFilled
+                ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-600'
+                : 'text-slate-400 hover:bg-amber-50 hover:text-amber-600'
+            )}
+          >
+            <StickyNote size={14} />
+            {notesUrgent && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+            )}
+          </button>
           {task.gitlabUrl && (
             <a
               href={task.gitlabUrl}

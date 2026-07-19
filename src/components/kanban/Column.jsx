@@ -9,7 +9,7 @@ import { cn } from '../../utils/cn'
  * Columna del tablero que representa un estado.
  * Es zona soltable (droppable) para el Drag & Drop.
  */
-export function Column({ status, tasks, onAddTask, onEditTask, onDeleteTask }) {
+export function Column({ status, tasks, onAddTask, onEditTask, onDeleteTask, onNotesTask }) {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
     data: { type: 'column', statusId: status.id },
@@ -58,6 +58,7 @@ export function Column({ status, tasks, onAddTask, onEditTask, onDeleteTask }) {
               task={task}
               onEdit={onEditTask}
               onDelete={onDeleteTask}
+              onNotes={onNotesTask}
             />
           ))}
         </SortableContext>

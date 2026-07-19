@@ -312,6 +312,7 @@ export function BoardProvider({ children }) {
         currentStatusEndAt: null,
         gitlabUrl: data.gitlabUrl?.trim() || '',
         makahaUrl: data.makahaUrl?.trim() || '',
+        notes: data.notes || { content: '', updatedAt: null },
       }
 
       if (REMOTE) {
@@ -362,6 +363,22 @@ export function BoardProvider({ children }) {
     (id) => {
       setTasks((prev) => prev.filter((t) => t.id !== id))
       remote(() => db.deleteTaskRow(id))
+    },
+    [remote]
+  )
+
+  /** Actualiza solo las notas (post-its) de una tarea. */
+  const updateTaskNotes = useCallback(
+    (id, notes) => {
+      let saved = null
+      setTasks((prev) =>
+        prev.map((t) => {
+          if (t.id !== id) return t
+          saved = { ...t, notes }
+          return saved
+        })
+      )
+      if (saved) remote(() => db.updateTaskRow(saved))
     },
     [remote]
   )
@@ -484,6 +501,7 @@ export function BoardProvider({ children }) {
     // tareas
     createTask,
     updateTask,
+    updateTaskNotes,
     deleteTask,
     moveTask,
     // lookups

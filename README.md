@@ -89,6 +89,16 @@ implementado con Supabase. Ver **"Modo compartido con Supabase"** más abajo.
 - **Gestión de Responsables**: nombre y color; una tarea puede tener varios.
 - **Tareas**: ID automático, N° de ticket, proyecto, nombre, descripción, estado,
   tipo, responsables, fechas y enlaces GitLab / Makaha.
+- **Notas por tarjeta (hoja libre)**: cada tarjeta tiene un icono de nota 📝 que
+  abre una **hoja de texto libre compartida** para esa tarea (notas de reuniones,
+  comandos del ticket, pendientes…). Soporta un Markdown ligero con dos modos
+  (Editar / Vista):
+  - `- [ ]` / `- [x]` → **checklist** con casillas clickeables directamente en la vista.
+  - `!! texto` → línea **urgente** resaltada en rojo. Si una nota tiene urgentes, la
+    tarjeta muestra un **punto rojo** sobre el icono para verlo desde el tablero.
+  - `# título`, listas numeradas y bloques de comandos con <code>```</code>.
+  Es colaborativa: en modo Supabase todos ven y editan la misma hoja en vivo. Se
+  guarda igual que el resto del tablero (LocalStorage o Supabase).
 - **Datos**: exportar / importar respaldo JSON y reiniciar.
 
 ## Persistencia y modos
@@ -123,6 +133,11 @@ para este volumen (el tablero pesa kilobytes).
 5. Reinicia `npm run dev`. La barra lateral debe decir “Conectado (nube)”.
 
 **Notas:**
+- Si ya tenías el schema creado **antes** de la función de notas, añade la columna
+  sin recrear la base (SQL Editor):
+  ```sql
+  alter table tasks add column if not exists notes jsonb not null default '{"content":"","updatedAt":null}'::jsonb;
+  ```
 - El tablero es **abierto** (sin login): cualquiera con la URL de la app y las
   credenciales puede editar. Suficiente para uso interno; se puede endurecer con
   Supabase Auth más adelante.
