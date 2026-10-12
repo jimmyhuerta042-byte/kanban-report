@@ -92,8 +92,9 @@ implementado con Supabase. Ver **"Modo compartido con Supabase"** más abajo.
   (Todos / Sin sprint / uno concreto) que se recuerda en el navegador y también
   limita el PDF exportado.
 - **Historial de estados**: cada cambio de estado (drag & drop o edición) queda
-  registrado. El icono de reloj de la tarjeta muestra cuánto tiempo estuvo la
-  tarea en cada estado y la línea de tiempo completa, incluidas las vueltas atrás.
+  registrado. El reloj de la tarjeta indica cuánto lleva en la columna actual
+  (p. ej. "5 d") y abre el tiempo por estado y la línea de tiempo completa,
+  incluidas las vueltas atrás.
 - **Entrega y cierre**: en Estados → editar, un estado puede marcarse como "desde
   aquí, entregada al cliente" y otro como "desde aquí, cerrada" (por defecto
   Feedback A y Done). El historial muestra cuándo se entregó y se cerró, el

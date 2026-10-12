@@ -95,3 +95,11 @@ export function statusMilestones(task, { statusOrder, milestones, backlogStatusI
     clientMs,
   }
 }
+
+/** Versión corta para la tarjeta: "5 d", "6 h", "< 1 h". */
+export function formatShortDuration(ms) {
+  const h = Math.floor(ms / 3600000)
+  if (h < 1) return '< 1 h'
+  if (h < 24) return `${h} h`
+  return `${Math.floor(h / 24)} d`
+}

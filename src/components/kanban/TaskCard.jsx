@@ -16,6 +16,7 @@ import { formatDate } from '../../utils/dates'
 import { withAlpha } from '../../utils/colors'
 import { hasContent, hasUrgent } from '../../utils/notes'
 import { cn } from '../../utils/cn'
+import { historySegments, formatDuration, formatShortDuration } from '../../utils/statusHistory'
 
 /**
  * Tarjeta de tarea del tablero. Arrastrable mediante dnd-kit.
@@ -37,6 +38,8 @@ export function TaskCard({
   const ticketLabel = task.ticket?.trim() || `#${task.code}`
   const notesFilled = hasContent(task.notes)
   const notesUrgent = notesFilled && hasUrgent(task.notes)
+  // Tiempo en la columna actual (último tramo del historial).
+  const inStatusMs = historySegments(task).at(-1)?.ms ?? 0
 
   const {
     attributes,
@@ -144,10 +147,11 @@ export function TaskCard({
               onHistory?.(task)
             }}
             onPointerDown={stop}
-            title="Historial de estados"
-            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+            title={`${formatDuration(inStatusMs)} en este estado · ver historial`}
+            className="flex h-6 items-center gap-1 rounded-md px-1 text-[11px] font-medium text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
           >
             <History size={14} />
+            {formatShortDuration(inStatusMs)}
           </button>
           <button
             onClick={(e) => {
