@@ -9,7 +9,7 @@ import { useToast } from '../context/ToastContext'
 import { useFilteredTasks, emptyFilters } from '../hooks/useFilteredTasks'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { exportBoardPDF } from '../services/pdf'
-import { NO_SPRINT } from '../utils/sprints'
+import { NO_SPRINT, formatSprintRange } from '../utils/sprints'
 
 export function Dashboard() {
   const {
@@ -54,7 +54,14 @@ export function Dashboard() {
       return
     }
     try {
-      const scope = sprint ? `Sprint: ${sprint.name}` : sprintId === NO_SPRINT ? 'Tasks without sprint' : ''
+      // El nombre ya dice "Sprint N": se muestra tal cual, con sus fechas (el PDF va
+      // en inglés, así que solo el rango numérico, sin "Desde/Hasta").
+      const range = sprint?.startDate && sprint?.endDate ? formatSprintRange(sprint) : ''
+      const scope = sprint
+        ? `${sprint.name}${range ? ` (${range})` : ''}`
+        : sprintId === NO_SPRINT
+          ? 'Tasks without sprint'
+          : ''
       await exportBoardPDF(filtered, { statuses, getType, getAssignees, getProject, scope })
       toast.success(`PDF generado con ${filtered.length} tarea(s).`)
     } catch (err) {
