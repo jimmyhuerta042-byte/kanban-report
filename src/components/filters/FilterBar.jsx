@@ -1,16 +1,30 @@
 import { useState } from 'react'
-import { Search, X, FileDown, Plus, SlidersHorizontal, ChevronDown } from 'lucide-react'
+import { Search, X, FileDown, Plus, SlidersHorizontal, ChevronDown, Flag } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Input, Select } from '../ui/Field'
 import { useBoard } from '../../context/BoardContext'
 import { cn } from '../../utils/cn'
+import { NO_SPRINT, SPRINT_PHASES, sprintPhase, formatSprintRange } from '../../utils/sprints'
 
 /**
  * Barra superior de filtros del tablero.
  * Fila compacta siempre visible + panel de filtros desplegable (colapsado por defecto).
+ * El sprint va aparte de `filters`: es la "vista" del tablero y no se limpia con
+ * el resto de filtros.
  */
-export function FilterBar({ filters, setFilters, onExport, onNewTask, resultCount }) {
-  const { statuses, types, assignees, projects } = useBoard()
+export function FilterBar({
+  filters,
+  setFilters,
+  sprintId,
+  onSprintChange,
+  onExport,
+  onNewTask,
+  resultCount,
+}) {
+  const { statuses, types, assignees, projects, sprints, getSprint, countTasksBySprint } =
+    useBoard()
+  const sprint = getSprint(sprintId)
+  const phase = sprint ? SPRINT_PHASES[sprintPhase(sprint)] : null
   const [open, setOpen] = useState(false)
 
   const set = (key, value) => setFilters((f) => ({ ...f, [key]: value }))
@@ -42,8 +56,48 @@ export function FilterBar({ filters, setFilters, onExport, onNewTask, resultCoun
     <div className="rounded-2xl border border-slate-200 bg-white shadow-card">
       {/* Fila compacta */}
       <div className="flex flex-wrap items-center gap-2.5 p-3">
+        {/* Vista por sprint */}
+        <div className="relative">
+          <Flag
+            size={15}
+            className={cn(
+              'pointer-events-none absolute left-3 top-1/2 -translate-y-1/2',
+              sprintId ? 'text-indigo-600' : 'text-slate-400'
+            )}
+          />
+          <Select
+            value={sprintId}
+            onChange={(e) => onSprintChange(e.target.value)}
+            title="Ver tareas por sprint"
+            className={cn(
+              '!w-auto min-w-[180px] max-w-[240px] pl-9 font-medium',
+              sprintId && '!border-indigo-200 !bg-indigo-50 text-indigo-700'
+            )}
+          >
+            <option value="">Todos los sprints</option>
+            <option value={NO_SPRINT}>Sin sprint ({countTasksBySprint(null)})</option>
+            {sprints.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({countTasksBySprint(s.id)})
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        {sprint && (
+          <div
+            className="flex items-center gap-2 text-xs text-slate-500"
+            title={sprint.goal || undefined}
+          >
+            <span className={cn('rounded-full px-2 py-0.5 font-semibold', phase.className)}>
+              {phase.label}
+            </span>
+            {formatSprintRange(sprint)}
+          </div>
+        )}
+
         {/* Búsqueda por nombre / ticket */}
-        <div className="relative min-w-[200px] flex-1">
+        <div className="relative min-w-[160px] flex-1">
           <Search
             size={16}
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"

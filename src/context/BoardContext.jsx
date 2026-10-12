@@ -13,6 +13,7 @@ import {
   seedTypes,
   seedAssignees,
   seedProjects,
+  seedSprints,
   buildSeedTasks,
   seedSeq,
 } from '../data/seed'
@@ -43,6 +44,9 @@ export function BoardProvider({ children }) {
   const [projects, setProjects] = useState(() =>
     REMOTE ? [] : readStorage(STORAGE_KEYS.projects, seedProjects)
   )
+  const [sprints, setSprints] = useState(() =>
+    REMOTE ? [] : readStorage(STORAGE_KEYS.sprints, seedSprints)
+  )
   const [tasks, setTasks] = useState(() =>
     REMOTE ? [] : readStorage(STORAGE_KEYS.tasks, buildSeedTasks())
   )
@@ -63,6 +67,7 @@ export function BoardProvider({ children }) {
     setTypes(data.types)
     setAssignees(data.assignees)
     setProjects(data.projects)
+    setSprints(data.sprints)
     setTasks(data.tasks)
     setSeq(data.seq)
     // Libera el flag tras aplicar (siguiente tick).
@@ -106,6 +111,10 @@ export function BoardProvider({ children }) {
     if (REMOTE) return
     writeStorage(STORAGE_KEYS.projects, projects)
   }, [projects])
+  useEffect(() => {
+    if (REMOTE) return
+    writeStorage(STORAGE_KEYS.sprints, sprints)
+  }, [sprints])
   useEffect(() => {
     if (REMOTE) return
     writeStorage(STORAGE_KEYS.tasks, tasks)
@@ -285,11 +294,79 @@ export function BoardProvider({ children }) {
     [tasks]
   )
 
+  /* ------------------------------ Sprints ----------------------------- */
+
+  // Por fecha de inicio; los que no tienen fecha van al final.
+  const sortedSprints = useMemo(
+    () =>
+      [...sprints].sort((a, b) => {
+        if (!a.startDate) return b.startDate ? 1 : 0
+        if (!b.startDate) return -1
+        return a.startDate.localeCompare(b.startDate)
+      }),
+    [sprints]
+  )
+
+  const addSprint = useCallback(
+    (data) => {
+      const item = { id: uid('sp-'), goal: '', startDate: '', endDate: '', ...data }
+      setSprints((prev) => [...prev, item])
+      remote(() => db.insertSprint(item))
+      return item
+    },
+    [remote]
+  )
+  const updateSprint = useCallback(
+    (id, data) => {
+      let saved = null
+      setSprints((prev) =>
+        prev.map((s) => {
+          if (s.id !== id) return s
+          saved = { ...s, ...data }
+          return saved
+        })
+      )
+      if (saved) remote(() => db.updateSprintRow(id, saved))
+    },
+    [remote]
+  )
+  const deleteSprint = useCallback(
+    (id) => {
+      // Las tareas del sprint quedan sueltas (en la nube lo hace el FK on delete set null).
+      setSprints((prev) => prev.filter((s) => s.id !== id))
+      setTasks((prev) => prev.map((t) => (t.sprintId === id ? { ...t, sprintId: null } : t)))
+      remote(() => db.deleteSprintRow(id))
+    },
+    [remote]
+  )
+  /** Mueve varias tareas a un sprint (o las deja sueltas con sprintId = null). */
+  const moveTasksToSprint = useCallback(
+    (taskIds, sprintId) => {
+      if (!taskIds.length) return
+      const ids = new Set(taskIds)
+      setTasks((prev) =>
+        prev.map((t) => (ids.has(t.id) ? { ...t, sprintId: sprintId || null } : t))
+      )
+      remote(() => db.setTasksSprint(taskIds, sprintId || null))
+    },
+    [remote]
+  )
+  const countTasksBySprint = useCallback(
+    (sprintId) => tasks.filter((t) => (t.sprintId || null) === sprintId).length,
+    [tasks]
+  )
+
   /* ------------------------------ Tareas ------------------------------ */
 
   const backlogStatusId = useMemo(() => {
     const byName = sortedStatuses.find((s) => /backlog/i.test(s.name))
     return byName?.id || sortedStatuses[0]?.id || null
+  }, [sortedStatuses])
+
+  // Estado "terminado": el que se llame Done/Hecho/Terminado, o el último.
+  const doneStatusId = useMemo(() => {
+    const byName = sortedStatuses.find((s) => /done|hecho|terminad|complet/i.test(s.name))
+    return byName?.id || sortedStatuses[sortedStatuses.length - 1]?.id || null
   }, [sortedStatuses])
 
   const createTask = useCallback(
@@ -301,6 +378,7 @@ export function BoardProvider({ children }) {
         id: uid('tk-'),
         ticket: data.ticket?.trim() || '',
         projectId: data.projectId || null,
+        sprintId: data.sprintId || null,
         title: data.title.trim(),
         description: data.description?.trim() || '',
         statusId,
@@ -429,12 +507,16 @@ export function BoardProvider({ children }) {
     (id) => projects.find((p) => p.id === id) || null,
     [projects]
   )
+  const getSprint = useCallback(
+    (id) => sprints.find((s) => s.id === id) || null,
+    [sprints]
+  )
 
   /* --------------------- Respaldo / restauración --------------------- */
 
   const exportState = useCallback(
-    () => ({ statuses, types, assignees, projects, tasks, seq }),
-    [statuses, types, assignees, projects, tasks, seq]
+    () => ({ statuses, types, assignees, projects, sprints, tasks, seq }),
+    [statuses, types, assignees, projects, sprints, tasks, seq]
   )
 
   const applyState = useCallback((data) => {
@@ -442,6 +524,7 @@ export function BoardProvider({ children }) {
     setTypes(data.types)
     setAssignees(data.assignees)
     setProjects(data.projects)
+    setSprints(data.sprints || [])
     setTasks(data.tasks)
     setSeq(data.seq)
   }, [])
@@ -460,6 +543,7 @@ export function BoardProvider({ children }) {
       types: seedTypes,
       assignees: seedAssignees,
       projects: seedProjects,
+      sprints: seedSprints,
       tasks: buildSeedTasks(),
       seq: seedSeq,
     }
@@ -473,8 +557,10 @@ export function BoardProvider({ children }) {
     types,
     assignees,
     projects,
+    sprints: sortedSprints,
     tasks,
     backlogStatusId,
+    doneStatusId,
     loading,
     isRemote: REMOTE,
     // estados
@@ -498,6 +584,12 @@ export function BoardProvider({ children }) {
     updateProject,
     deleteProject,
     countTasksByProject,
+    // sprints
+    addSprint,
+    updateSprint,
+    deleteSprint,
+    moveTasksToSprint,
+    countTasksBySprint,
     // tareas
     createTask,
     updateTask,
@@ -509,6 +601,7 @@ export function BoardProvider({ children }) {
     getStatus,
     getAssignees,
     getProject,
+    getSprint,
     // respaldo / restauración
     exportState,
     importState,

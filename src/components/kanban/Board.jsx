@@ -13,9 +13,17 @@ import { useBoard } from '../../context/BoardContext'
 
 /**
  * Tablero Kanban completo con Drag & Drop entre columnas.
- * `tasks` recibe ya las tareas filtradas.
+ * `tasks` recibe ya las tareas filtradas. `showSprint` muestra el sprint en cada
+ * tarjeta (útil al ver todos; redundante cuando ya se filtra por uno).
  */
-export function Board({ tasks, onAddTask, onEditTask, onDeleteTask, onNotesTask }) {
+export function Board({
+  tasks,
+  showSprint = true,
+  onAddTask,
+  onEditTask,
+  onDeleteTask,
+  onNotesTask,
+}) {
   const { statuses, moveTask } = useBoard()
   const [activeTask, setActiveTask] = useState(null)
 
@@ -75,6 +83,7 @@ export function Board({ tasks, onAddTask, onEditTask, onDeleteTask, onNotesTask 
               onEditTask={onEditTask}
               onDeleteTask={onDeleteTask}
               onNotesTask={onNotesTask}
+              showSprint={showSprint}
             />
           ))}
         </div>
@@ -83,7 +92,7 @@ export function Board({ tasks, onAddTask, onEditTask, onDeleteTask, onNotesTask 
       <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeTask ? (
           <div className="w-[284px]">
-            <TaskCard task={activeTask} overlay />
+            <TaskCard task={activeTask} showSprint={showSprint} overlay />
           </div>
         ) : null}
       </DragOverlay>

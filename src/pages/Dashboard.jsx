@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Board } from '../components/kanban/Board'
 import { FilterBar } from '../components/filters/FilterBar'
 import { TaskModal } from '../components/modals/TaskModal'
@@ -7,15 +7,33 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { useBoard } from '../context/BoardContext'
 import { useToast } from '../context/ToastContext'
 import { useFilteredTasks, emptyFilters } from '../hooks/useFilteredTasks'
+import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { exportBoardPDF } from '../services/pdf'
+import { NO_SPRINT } from '../utils/sprints'
 
 export function Dashboard() {
-  const { tasks, statuses, deleteTask, getType, getAssignees, getProject, loading } =
-    useBoard()
+  const {
+    tasks,
+    statuses,
+    deleteTask,
+    getType,
+    getAssignees,
+    getProject,
+    getSprint,
+    loading,
+  } = useBoard()
   const toast = useToast()
 
   const [filters, setFilters] = useState(emptyFilters)
-  const filtered = useFilteredTasks(tasks, filters)
+  // El sprint elegido se recuerda en este navegador (p. ej. el de la reunión semanal).
+  const [sprintId, setSprintId] = useLocalStorageState('dashboard.sprintId', '')
+  const sprint = getSprint(sprintId)
+  const filtered = useFilteredTasks(tasks, { ...filters, sprintId })
+
+  // Si el sprint guardado se eliminó, vuelve a "Todos".
+  useEffect(() => {
+    if (!loading && sprintId && sprintId !== NO_SPRINT && !sprint) setSprintId('')
+  }, [loading, sprintId, sprint, setSprintId])
 
   const [taskModal, setTaskModal] = useState({ open: false, task: null, statusId: null })
   const [notesTaskId, setNotesTaskId] = useState(null)
@@ -36,7 +54,8 @@ export function Dashboard() {
       return
     }
     try {
-      await exportBoardPDF(filtered, { statuses, getType, getAssignees, getProject })
+      const scope = sprint ? `Sprint: ${sprint.name}` : sprintId === NO_SPRINT ? 'Tasks without sprint' : ''
+      await exportBoardPDF(filtered, { statuses, getType, getAssignees, getProject, scope })
       toast.success(`PDF generado con ${filtered.length} tarea(s).`)
     } catch (err) {
       console.error(err)
@@ -55,6 +74,8 @@ export function Dashboard() {
       <FilterBar
         filters={filters}
         setFilters={setFilters}
+        sprintId={sprintId}
+        onSprintChange={setSprintId}
         onExport={handleExport}
         onNewTask={openNew}
         resultCount={filtered.length}
@@ -71,6 +92,7 @@ export function Dashboard() {
         ) : (
           <Board
             tasks={filtered}
+            showSprint={!sprintId}
             onAddTask={openNew}
             onEditTask={openEdit}
             onDeleteTask={(task) => setConfirm({ open: true, task })}
@@ -83,6 +105,7 @@ export function Dashboard() {
         open={taskModal.open}
         task={taskModal.task}
         defaultStatusId={taskModal.statusId}
+        defaultSprintId={sprint?.id}
         onClose={closeModal}
       />
 

@@ -39,7 +39,10 @@ function truncate(doc, text, maxW) {
  *
  * `tasks` ya viene filtrada. `statuses` en orden.
  */
-export async function exportBoardPDF(tasks, { statuses, getType, getAssignees, getProject }) {
+export async function exportBoardPDF(
+  tasks,
+  { statuses, getType, getAssignees, getProject, scope = '' }
+) {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
   const PAGE_W = doc.internal.pageSize.getWidth()
   const PAGE_H = doc.internal.pageSize.getHeight()
@@ -79,7 +82,7 @@ export async function exportBoardPDF(tasks, { statuses, getType, getAssignees, g
   doc.setTextColor(100, 116, 139)
   const generated = formatDate(new Date().toISOString())
   doc.text(
-    `Generated: ${generated}   ·   ${tasks.length} task(s)`,
+    [scope, `Generated: ${generated}`, `${tasks.length} task(s)`].filter(Boolean).join('   ·   '),
     PAGE_W / 2,
     headerTop + 29,
     { align: 'center' }

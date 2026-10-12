@@ -85,6 +85,12 @@ implementado con Supabase. Ver **"Modo compartido con Supabase"** más abajo.
   horizontal, en inglés, con dos logos en el encabezado; incluye solo lo filtrado.
 - **Gestión de Estados**: crear, editar, eliminar y reordenar (Drag & Drop) las columnas.
 - **Gestión de Proyectos**: agrupa tareas por proyecto (nombre + color).
+- **Sprints**: cada tarea puede pertenecer a un sprint o quedar suelta. En la
+  página **Sprints** se crean (nombre, objetivo, fechas, color), se añaden tareas
+  sueltas, se mueven tareas a otro sprint y, si hay retrasos, se pasan de golpe
+  todas las pendientes al siguiente. El tablero tiene un selector de sprint
+  (Todos / Sin sprint / uno concreto) que se recuerda en el navegador y también
+  limita el PDF exportado.
 - **Gestión de Tipos de Tarea**: nombre, icono (emoji) y color; el color identifica las tarjetas.
 - **Gestión de Responsables**: nombre y color; una tarea puede tener varios.
 - **Tareas**: ID automático, N° de ticket, proyecto, nombre, descripción, estado,
@@ -138,6 +144,9 @@ para este volumen (el tablero pesa kilobytes).
   ```sql
   alter table tasks add column if not exists notes jsonb not null default '{"content":"","updatedAt":null}'::jsonb;
   ```
+- Si ya tenías el schema creado **antes** de los sprints, ejecuta en SQL Editor
+  [`supabase/migrations/001_sprints.sql`](supabase/migrations/001_sprints.sql)
+  (crea la tabla `sprints` y la columna `tasks.sprint_id` sin tocar tus datos).
 - El tablero es **abierto** (sin login): cualquiera con la URL de la app y las
   credenciales puede editar. Suficiente para uso interno; se puede endurecer con
   Supabase Auth más adelante.
@@ -152,13 +161,14 @@ para este volumen (el tablero pesa kilobytes).
 ```
 src/
   components/   ui, kanban, modals, filters, DataMenu
-  pages/        Dashboard, StatusesPage, TypesPage, AssigneesPage, ProjectsPage
+  pages/        Dashboard, SprintsPage, StatusesPage, TypesPage, AssigneesPage, ProjectsPage
   layouts/      AppLayout, ManagementLayout
   hooks/        useFilteredTasks, useLocalStorageState
   context/      BoardContext (local + Supabase), ToastContext
   services/     storage (LocalStorage), supabase, db (capa de datos), pdf, backup, logos
-  utils/        dates, colors, cn, id
+  utils/        dates, colors, cn, id, notes, sprints
   data/         seed
 supabase/
   schema.sql    esquema + RLS + realtime + datos de ejemplo
+  migrations/   cambios incrementales para bases ya creadas
 ```

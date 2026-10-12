@@ -35,6 +35,17 @@ export const seedProjects = [
   { id: 'pr-course-cloud', name: 'Course Cloud', color: '#22c55e' },
 ]
 
+export const seedSprints = [
+  {
+    id: 'sp-1',
+    name: 'Sprint 1 · Búsqueda unificada',
+    goal: 'Unificar el buscador del LMS.',
+    color: '#6366f1',
+    startDate: '2026-01-26',
+    endDate: '2026-02-06',
+  },
+]
+
 export function buildSeedTasks() {
   const created = nowISO()
   return [
@@ -43,6 +54,7 @@ export function buildSeedTasks() {
       code: 953,
       ticket: '953',
       projectId: 'pr-lms',
+      sprintId: 'sp-1',
       title: 'Unify Search Functionality Across LMS',
       description: 'Course List, Catalog, My Courses.',
       statusId: 'st-progress',
@@ -72,6 +84,7 @@ export function buildSeedTasks() {
       code: 974,
       ticket: '974',
       projectId: 'pr-lms',
+      sprintId: 'sp-1',
       title: 'Global catalog search bar styling issue',
       description: '',
       statusId: 'st-testing',
@@ -90,6 +103,7 @@ export function buildSeedTasks() {
       code: 972,
       ticket: '972',
       projectId: 'pr-course-cloud',
+      sprintId: null,
       title: 'Old Certificate Generation Issues',
       description: '',
       statusId: 'st-done',
@@ -108,6 +122,7 @@ export function buildSeedTasks() {
       code: 917,
       ticket: '917',
       projectId: 'pr-lms-manager',
+      sprintId: null,
       title: 'Enable Portal Admin and Supervisor Access to Learner Certificates',
       description: 'Ensure Certificate Visibility.',
       statusId: 'st-feedbackA',
@@ -126,6 +141,7 @@ export function buildSeedTasks() {
       code: 955,
       ticket: '955',
       projectId: 'pr-lms',
+      sprintId: null,
       title: 'Fix LMS Redirection After Session Timeout',
       description: '',
       statusId: 'st-feedbackB',
@@ -144,6 +160,7 @@ export function buildSeedTasks() {
       code: 922,
       ticket: '922',
       projectId: 'pr-lms-manager',
+      sprintId: null,
       title: 'Sidebar facelift',
       description: 'Still in progress; preparing the Figma links.',
       statusId: 'st-backlog',

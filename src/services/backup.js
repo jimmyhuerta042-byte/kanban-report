@@ -11,12 +11,12 @@ import dayjs from 'dayjs'
 export const BACKUP_VERSION = 1
 
 /** Construye el objeto de respaldo a partir del estado actual. */
-export function buildBackup({ statuses, types, assignees, projects, tasks, seq }) {
+export function buildBackup({ statuses, types, assignees, projects, sprints, tasks, seq }) {
   return {
     app: 'kanban-board',
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    data: { statuses, types, assignees, projects, tasks, seq },
+    data: { statuses, types, assignees, projects, sprints, tasks, seq },
   }
 }
 
@@ -73,6 +73,8 @@ export function parseBackup(raw) {
       types: data.types,
       assignees: data.assignees,
       projects: data.projects,
+      // Respaldos anteriores a los sprints no traen esta sección.
+      sprints: Array.isArray(data.sprints) ? data.sprints : [],
       tasks: data.tasks,
       seq,
     },

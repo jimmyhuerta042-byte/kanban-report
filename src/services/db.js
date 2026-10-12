@@ -26,11 +26,30 @@ const assigneeToRow = (a) => ({ id: a.id, name: a.name, color: a.color })
 const rowToProject = (r) => ({ id: r.id, name: r.name, color: r.color })
 const projectToRow = (p) => ({ id: p.id, name: p.name, color: p.color })
 
+// Las fechas del sprint se guardan como 'YYYY-MM-DD' (columna date).
+const rowToSprint = (r) => ({
+  id: r.id,
+  name: r.name,
+  goal: r.goal ?? '',
+  color: r.color,
+  startDate: r.start_date ?? '',
+  endDate: r.end_date ?? '',
+})
+const sprintToRow = (s) => ({
+  id: s.id,
+  name: s.name,
+  goal: s.goal ?? '',
+  color: s.color,
+  start_date: s.startDate || null,
+  end_date: s.endDate || null,
+})
+
 const rowToTask = (r) => ({
   id: r.id,
   code: r.code,
   ticket: r.ticket ?? '',
   projectId: r.project_id ?? null,
+  sprintId: r.sprint_id ?? null,
   title: r.title,
   description: r.description ?? '',
   statusId: r.status_id ?? null,
@@ -52,6 +71,7 @@ const taskToRow = (t) => ({
   code: t.code,
   ticket: t.ticket ?? '',
   project_id: t.projectId ?? null,
+  sprint_id: t.sprintId ?? null,
   title: t.title,
   description: t.description ?? '',
   status_id: t.statusId ?? null,
@@ -72,17 +92,23 @@ const taskToRow = (t) => ({
 
 /** Lee todo el tablero. Devuelve la misma forma que el estado del context. */
 export async function fetchAll() {
-  const [statuses, types, assignees, projects, tasks, meta] = await Promise.all([
+  const [statuses, types, assignees, projects, sprints, tasks, meta] = await Promise.all([
     supabase.from('statuses').select('*').order('order', { ascending: true }),
     supabase.from('types').select('*'),
     supabase.from('assignees').select('*'),
     supabase.from('projects').select('*'),
+    supabase.from('sprints').select('*').order('start_date', { ascending: true, nullsFirst: false }),
     supabase.from('tasks').select('*').order('code', { ascending: false }),
     supabase.from('meta').select('*').eq('id', 'singleton').maybeSingle(),
   ])
 
   const err =
-    statuses.error || types.error || assignees.error || projects.error || tasks.error
+    statuses.error ||
+    types.error ||
+    assignees.error ||
+    projects.error ||
+    sprints.error ||
+    tasks.error
   if (err) throw err
 
   return {
@@ -90,6 +116,7 @@ export async function fetchAll() {
     types: (types.data || []).map(rowToType),
     assignees: (assignees.data || []).map(rowToAssignee),
     projects: (projects.data || []).map(rowToProject),
+    sprints: (sprints.data || []).map(rowToSprint),
     tasks: (tasks.data || []).map(rowToTask),
     seq: meta.data?.next_code ?? 1000,
   }
@@ -127,6 +154,15 @@ export const updateProjectRow = (id, data) =>
   run(supabase.from('projects').update(projectToRow({ id, ...data })).eq('id', id))
 export const deleteProjectRow = (id) =>
   run(supabase.from('projects').delete().eq('id', id))
+
+export const insertSprint = (s) => run(supabase.from('sprints').insert(sprintToRow(s)))
+export const updateSprintRow = (id, data) =>
+  run(supabase.from('sprints').update(sprintToRow({ id, ...data })).eq('id', id))
+export const deleteSprintRow = (id) => run(supabase.from('sprints').delete().eq('id', id))
+
+/** Asigna (o quita, con null) el sprint de varias tareas en una sola consulta. */
+export const setTasksSprint = (ids, sprintId) =>
+  run(supabase.from('tasks').update({ sprint_id: sprintId ?? null }).in('id', ids))
 
 export const insertTask = (t) => run(supabase.from('tasks').insert(taskToRow(t)))
 export const updateTaskRow = (t) =>
@@ -175,7 +211,7 @@ export async function nextCode() {
 /** Reemplaza TODO el contenido (para importar respaldo o reiniciar). */
 export async function replaceAll(state) {
   // Borra todo y reinserta. delete sin filtro requiere una condición → neq id.
-  const tables = ['tasks', 'statuses', 'types', 'assignees', 'projects']
+  const tables = ['tasks', 'sprints', 'statuses', 'types', 'assignees', 'projects']
   for (const t of tables) {
     const { error } = await supabase.from(t).delete().neq('id', '__none__')
     if (error) throw error
@@ -185,6 +221,9 @@ export async function replaceAll(state) {
   await run(supabase.from('types').insert(state.types.map(typeToRow)))
   await run(supabase.from('assignees').insert(state.assignees.map(assigneeToRow)))
   await run(supabase.from('projects').insert(state.projects.map(projectToRow)))
+  if (state.sprints.length) {
+    await run(supabase.from('sprints').insert(state.sprints.map(sprintToRow)))
+  }
   await run(supabase.from('tasks').insert(state.tasks.map(taskToRow)))
   await run(
     supabase.from('meta').upsert({ id: 'singleton', next_code: state.seq })
@@ -199,7 +238,7 @@ export async function replaceAll(state) {
  */
 export function subscribe(onChange) {
   const channel = supabase.channel('kanban-board')
-  for (const table of ['statuses', 'types', 'assignees', 'projects', 'tasks']) {
+  for (const table of ['statuses', 'types', 'assignees', 'projects', 'sprints', 'tasks']) {
     channel.on('postgres_changes', { event: '*', schema: 'public', table }, onChange)
   }
   channel.subscribe()

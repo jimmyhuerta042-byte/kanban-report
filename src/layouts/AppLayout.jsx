@@ -1,10 +1,20 @@
-import { LayoutDashboard, Columns3, Tags, Users, FolderKanban, Cloud, HardDrive } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Columns3,
+  Tags,
+  Users,
+  FolderKanban,
+  Flag,
+  Cloud,
+  HardDrive,
+} from 'lucide-react'
 import { cn } from '../utils/cn'
 import { DataMenu } from '../components/DataMenu'
 import { useBoard } from '../context/BoardContext'
 
 const NAV = [
   { id: 'dashboard', label: 'Tablero', icon: LayoutDashboard },
+  { id: 'sprints', label: 'Sprints', icon: Flag },
   { id: 'projects', label: 'Proyectos', icon: FolderKanban },
   { id: 'statuses', label: 'Estados', icon: Columns3 },
   { id: 'types', label: 'Tipos de Tarea', icon: Tags },

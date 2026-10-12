@@ -11,6 +11,7 @@ const emptyForm = {
   title: '',
   ticket: '',
   projectId: '',
+  sprintId: '',
   description: '',
   statusId: '',
   typeId: '',
@@ -22,10 +23,12 @@ const emptyForm = {
 
 /**
  * Modal para crear o editar una tarea.
- * Si recibe `task`, funciona en modo edición.
+ * Si recibe `task`, funciona en modo edición. `defaultSprintId` preselecciona el
+ * sprint de las tareas nuevas (el que se está viendo en el tablero).
  */
-export function TaskModal({ open, onClose, task, defaultStatusId }) {
-  const { statuses, types, assignees, projects, createTask, updateTask } = useBoard()
+export function TaskModal({ open, onClose, task, defaultStatusId, defaultSprintId }) {
+  const { statuses, types, assignees, projects, sprints, createTask, updateTask } =
+    useBoard()
   const toast = useToast()
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
@@ -39,6 +42,7 @@ export function TaskModal({ open, onClose, task, defaultStatusId }) {
         title: task.title,
         ticket: task.ticket || '',
         projectId: task.projectId || '',
+        sprintId: task.sprintId || '',
         description: task.description || '',
         statusId: task.statusId,
         typeId: task.typeId || '',
@@ -52,10 +56,11 @@ export function TaskModal({ open, onClose, task, defaultStatusId }) {
         ...emptyForm,
         statusId: defaultStatusId || statuses[0]?.id || '',
         typeId: types[0]?.id || '',
+        sprintId: defaultSprintId || '',
       })
     }
     setErrors({})
-  }, [open, task, defaultStatusId, statuses, types])
+  }, [open, task, defaultStatusId, defaultSprintId, statuses, types])
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }))
 
@@ -78,6 +83,7 @@ export function TaskModal({ open, onClose, task, defaultStatusId }) {
       title: form.title,
       ticket: form.ticket,
       projectId: form.projectId || null,
+      sprintId: form.sprintId || null,
       description: form.description,
       statusId: form.statusId,
       typeId: form.typeId || null,
@@ -126,7 +132,7 @@ export function TaskModal({ open, onClose, task, defaultStatusId }) {
           />
         </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="N° de ticket">
             <Input
               value={form.ticket}
@@ -141,6 +147,17 @@ export function TaskModal({ open, onClose, task, defaultStatusId }) {
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Sprint">
+            <Select value={form.sprintId} onChange={(e) => set('sprintId', e.target.value)}>
+              <option value="">— Sin sprint —</option>
+              {sprints.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
               ))}
             </Select>

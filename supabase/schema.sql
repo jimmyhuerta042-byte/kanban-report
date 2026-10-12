@@ -13,6 +13,7 @@
 
 -- Limpieza (idempotente): permite re-ejecutar el script sin errores.
 drop table if exists tasks cascade;
+drop table if exists sprints cascade;
 drop table if exists statuses cascade;
 drop table if exists types cascade;
 drop table if exists assignees cascade;
@@ -47,11 +48,22 @@ create table projects (
   color text not null
 );
 
+-- Sprints: agrupan tareas (una tarea pertenece a 0 o 1 sprint).
+create table sprints (
+  id         text primary key,
+  name       text not null,
+  goal       text not null default '',
+  color      text not null,
+  start_date date,
+  end_date   date
+);
+
 create table tasks (
   id                      text primary key,
   code                    int  not null,
   ticket                  text not null default '',
   project_id              text references projects(id) on delete set null,
+  sprint_id               text references sprints(id)  on delete set null,
   title                   text not null,
   description             text not null default '',
   status_id               text references statuses(id) on delete set null,
@@ -71,6 +83,7 @@ create table tasks (
 -- Migración para bases existentes (si ya ejecutaste este schema antes y NO
 -- quieres recrearlo desde cero, ejecuta solo esta línea para añadir las notas):
 --   alter table tasks add column if not exists notes jsonb not null default '{"content":"","updatedAt":null}'::jsonb;
+-- Para añadir los sprints a una base existente, usa supabase/migrations/001_sprints.sql.
 
 -- Contador compartido para el 'code' autoincremental de las tareas.
 create table meta (
@@ -83,6 +96,7 @@ alter table statuses  enable row level security;
 alter table types     enable row level security;
 alter table assignees enable row level security;
 alter table projects  enable row level security;
+alter table sprints   enable row level security;
 alter table tasks     enable row level security;
 alter table meta      enable row level security;
 
@@ -91,6 +105,7 @@ create policy "public all" on statuses  for all using (true) with check (true);
 create policy "public all" on types     for all using (true) with check (true);
 create policy "public all" on assignees for all using (true) with check (true);
 create policy "public all" on projects  for all using (true) with check (true);
+create policy "public all" on sprints   for all using (true) with check (true);
 create policy "public all" on tasks     for all using (true) with check (true);
 create policy "public all" on meta      for all using (true) with check (true);
 
@@ -99,6 +114,7 @@ alter publication supabase_realtime add table statuses;
 alter publication supabase_realtime add table types;
 alter publication supabase_realtime add table assignees;
 alter publication supabase_realtime add table projects;
+alter publication supabase_realtime add table sprints;
 alter publication supabase_realtime add table tasks;
 
 -- ------------------------------- Seed inicial -------------------------------
@@ -127,6 +143,10 @@ insert into projects (id, name, color) values
   ('pr-lms',          'LMS',          '#6366f1'),
   ('pr-lms-manager',  'LMS Manager',  '#0ea5e9'),
   ('pr-course-cloud', 'Course Cloud', '#22c55e');
+
+insert into sprints (id, name, goal, color, start_date, end_date) values
+  ('sp-1', 'Sprint 1 · Búsqueda unificada', 'Unificar el buscador del LMS.',
+   '#6366f1', '2026-01-26', '2026-02-06');
 
 insert into tasks
   (id, code, ticket, project_id, title, description, status_id, type_id,
@@ -164,5 +184,8 @@ values
    'Sidebar facelift', 'Still in progress; preparing the Figma links.',
    'st-backlog', 'ty-improvement', '{as-1}',
    now(), '2026-01-30T12:00:00Z', '2026-01-30T12:00:00Z', null, '', '', '{"content":"","updatedAt":null}'::jsonb);
+
+-- Las dos tareas de búsqueda forman parte del sprint de ejemplo; el resto quedan sueltas.
+update tasks set sprint_id = 'sp-1' where id in ('tk-953', 'tk-974');
 
 insert into meta (id, next_code) values ('singleton', 975);

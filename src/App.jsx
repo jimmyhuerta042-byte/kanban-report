@@ -7,9 +7,11 @@ import { StatusesPage } from './pages/StatusesPage'
 import { TypesPage } from './pages/TypesPage'
 import { AssigneesPage } from './pages/AssigneesPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { SprintsPage } from './pages/SprintsPage'
 
 const PAGES = {
   dashboard: Dashboard,
+  sprints: SprintsPage,
   statuses: StatusesPage,
   types: TypesPage,
   assignees: AssigneesPage,

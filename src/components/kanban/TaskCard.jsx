@@ -1,6 +1,14 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GitBranch, ExternalLink, Calendar, Pencil, Trash2, StickyNote } from 'lucide-react'
+import {
+  GitBranch,
+  ExternalLink,
+  Calendar,
+  Pencil,
+  Trash2,
+  StickyNote,
+  Flag,
+} from 'lucide-react'
 import { useBoard } from '../../context/BoardContext'
 import { AssigneeChip } from '../ui/Badge'
 import { formatDate } from '../../utils/dates'
@@ -11,11 +19,12 @@ import { cn } from '../../utils/cn'
 /**
  * Tarjeta de tarea del tablero. Arrastrable mediante dnd-kit.
  */
-export function TaskCard({ task, onEdit, onDelete, onNotes, overlay = false }) {
-  const { getType, getAssignees, getProject } = useBoard()
+export function TaskCard({ task, onEdit, onDelete, onNotes, showSprint = true, overlay = false }) {
+  const { getType, getAssignees, getProject, getSprint } = useBoard()
   const type = getType(task.typeId)
   const people = getAssignees(task.assigneeIds)
   const project = getProject(task.projectId)
+  const sprint = showSprint ? getSprint(task.sprintId) : null
   const ticketLabel = task.ticket?.trim() || `#${task.code}`
   const notesFilled = hasContent(task.notes)
   const notesUrgent = notesFilled && hasUrgent(task.notes)
@@ -70,15 +79,32 @@ export function TaskCard({ task, onEdit, onDelete, onNotes, overlay = false }) {
         </span>
       </div>
 
-      {/* Proyecto */}
-      {project && (
-        <span
-          className="mb-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
-          style={{ backgroundColor: withAlpha(project.color, 0.14), color: project.color }}
-        >
-          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: project.color }} />
-          {project.name}
-        </span>
+      {/* Proyecto + sprint */}
+      {(project || sprint) && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          {project && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+              style={{ backgroundColor: withAlpha(project.color, 0.14), color: project.color }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: project.color }}
+              />
+              {project.name}
+            </span>
+          )}
+          {sprint && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold"
+              style={{ borderColor: withAlpha(sprint.color, 0.35), color: sprint.color }}
+              title={`Sprint: ${sprint.name}`}
+            >
+              <Flag size={10} className="shrink-0" />
+              <span className="truncate">{sprint.name}</span>
+            </span>
+          )}
+        </div>
       )}
 
       {/* Título */}

@@ -37,6 +37,7 @@ export const STORAGE_KEYS = {
   types: 'types',
   assignees: 'assignees',
   projects: 'projects',
+  sprints: 'sprints',
   tasks: 'tasks',
   seq: 'seq',
 }
