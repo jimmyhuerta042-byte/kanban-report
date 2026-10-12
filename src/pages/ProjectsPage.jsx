@@ -62,12 +62,7 @@ export function ProjectsPage() {
         <EmptyState
           icon={FolderKanban}
           title="Sin proyectos"
-          description="Crea proyectos para clasificar tus tareas."
-          action={
-            <Button onClick={openNew}>
-              <Plus size={16} /> Nuevo proyecto
-            </Button>
-          }
+          description="Usa “Nuevo proyecto” para crear el primero y clasificar tus tareas."
         />
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

@@ -97,7 +97,10 @@ export function SprintsPage() {
         <div className="flex-1">
           <p className="font-medium text-slate-800">Tareas sueltas</p>
           <span className="text-xs text-slate-500">
-            {looseCount} tarea(s) sin sprint. Añádelas desde “Tareas” de cada sprint.
+            {looseCount} tarea(s) sin sprint.{' '}
+            {sprints.length > 0
+              ? 'Añádelas desde “Tareas” de cada sprint.'
+              : 'Crea un sprint para empezar a agruparlas.'}
           </span>
         </div>
       </div>
@@ -106,12 +109,7 @@ export function SprintsPage() {
         <EmptyState
           icon={Flag}
           title="Sin sprints"
-          description="Crea un sprint para agrupar las tareas que se revisarán juntas."
-          action={
-            <Button onClick={openNew}>
-              <Plus size={16} /> Nuevo sprint
-            </Button>
-          }
+          description="Usa “Nuevo sprint” para agrupar las tareas que se revisarán juntas."
         />
       ) : (
         <div className="flex flex-col gap-2">

@@ -71,12 +71,7 @@ export function TypesPage() {
         <EmptyState
           icon={Tags}
           title="Sin tipos de tarea"
-          description="Crea el primer tipo para empezar a clasificar tus tareas."
-          action={
-            <Button onClick={openNew}>
-              <Plus size={16} /> Nuevo tipo
-            </Button>
-          }
+          description="Usa “Nuevo tipo” para crear el primero y clasificar tus tareas."
         />
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

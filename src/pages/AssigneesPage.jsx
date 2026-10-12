@@ -62,12 +62,7 @@ export function AssigneesPage() {
         <EmptyState
           icon={Users}
           title="Sin responsables"
-          description="Agrega personas para poder asignarlas a las tareas."
-          action={
-            <Button onClick={openNew}>
-              <Plus size={16} /> Nuevo responsable
-            </Button>
-          }
+          description="Usa “Nuevo responsable” para agregar personas y asignarlas a las tareas."
         />
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
