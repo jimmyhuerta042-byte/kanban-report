@@ -150,22 +150,54 @@ export function BoardProvider({ children }) {
 
   /* ----------------------------- Estados ----------------------------- */
 
+  /**
+   * Como mucho un estado marca la entrega y otro el cierre: si `data` activa
+   * una marca, se quita de los demás estados. Devuelve los estados que cambian.
+   */
+  const clearOtherMarks = (list, data, keepId) =>
+    list
+      .filter(
+        (s) =>
+          s.id !== keepId &&
+          ((data.marksDelivery && s.marksDelivery) || (data.marksClose && s.marksClose))
+      )
+      .map((s) => ({
+        ...s,
+        marksDelivery: data.marksDelivery ? false : s.marksDelivery,
+        marksClose: data.marksClose ? false : s.marksClose,
+      }))
+
   const addStatus = useCallback(
     (data) => {
       const maxOrder = statuses.reduce((m, s) => Math.max(m, s.order), -1)
       const item = { id: uid('st-'), order: maxOrder + 1, ...data }
-      setStatuses((prev) => [...prev, item])
-      remote(() => db.insertStatus(item))
+      const cleared = clearOtherMarks(statuses, data, item.id)
+      setStatuses((prev) => [
+        ...prev.map((s) => cleared.find((c) => c.id === s.id) || s),
+        item,
+      ])
+      remote(async () => {
+        await db.insertStatus(item)
+        if (cleared.length) await db.upsertStatuses(cleared)
+      })
     },
     [statuses, remote]
   )
 
   const updateStatus = useCallback(
     (id, data) => {
-      setStatuses((prev) => prev.map((s) => (s.id === id ? { ...s, ...data } : s)))
-      remote(() => db.updateStatusRow(id, data))
+      const cleared = clearOtherMarks(statuses, data, id)
+      setStatuses((prev) =>
+        prev.map((s) =>
+          s.id === id ? { ...s, ...data } : cleared.find((c) => c.id === s.id) || s
+        )
+      )
+      remote(async () => {
+        await db.updateStatusRow(id, data)
+        if (cleared.length) await db.upsertStatuses(cleared)
+      })
     },
-    [remote]
+    [statuses, remote]
   )
 
   const deleteStatus = useCallback(
@@ -370,6 +402,30 @@ export function BoardProvider({ children }) {
     return byName?.id || sortedStatuses[sortedStatuses.length - 1]?.id || null
   }, [sortedStatuses])
 
+  /**
+   * Hitos "a partir de aquí" (página Estados): desde el estado marcado como
+   * entrega, y los que le siguen, la tarea cuenta como entregada al cliente; igual
+   * con el cierre. Sin marcas, el cierre es "Done" y la entrega coincide con él.
+   */
+  const milestones = useMemo(() => {
+    const close =
+      sortedStatuses.find((s) => s.marksClose) ||
+      sortedStatuses.find((s) => s.id === doneStatusId) ||
+      null
+    const delivery = sortedStatuses.find((s) => s.marksDelivery) || close
+    return {
+      deliveryStatusId: delivery?.id ?? null,
+      closeStatusId: close?.id ?? null,
+      deliveryOrder: delivery?.order ?? Infinity,
+      closeOrder: close?.order ?? Infinity,
+    }
+  }, [sortedStatuses, doneStatusId])
+
+  const statusOrder = useCallback(
+    (id) => statuses.find((s) => s.id === id)?.order ?? null,
+    [statuses]
+  )
+
   const createTask = useCallback(
     (data) => {
       const now = nowISO()
@@ -565,6 +621,8 @@ export function BoardProvider({ children }) {
     tasks,
     backlogStatusId,
     doneStatusId,
+    milestones,
+    statusOrder,
     loading,
     isRemote: REMOTE,
     // estados

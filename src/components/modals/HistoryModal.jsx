@@ -2,12 +2,13 @@ import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import { Modal } from '../ui/Modal'
 import { useBoard } from '../../context/BoardContext'
-import { formatDateTime } from '../../utils/dates'
+import { formatDate, formatDateTime } from '../../utils/dates'
 import {
   getStatusHistory,
   historySegments,
   timeByStatus,
   formatDuration,
+  statusMilestones,
 } from '../../utils/statusHistory'
 import { cn } from '../../utils/cn'
 
@@ -16,10 +17,14 @@ import { cn } from '../../utils/cn'
  * línea de tiempo completa (incluye las vueltas atrás).
  */
 export function HistoryModal({ open, onClose, task }) {
-  const { statuses, getStatus } = useBoard()
+  const { statuses, getStatus, statusOrder, milestones, backlogStatusId } = useBoard()
 
   const segments = useMemo(() => (task ? historySegments(task) : []), [task])
   const totals = useMemo(() => timeByStatus(segments), [segments])
+  const marks = useMemo(
+    () => (task ? statusMilestones(task, { statusOrder, milestones, backlogStatusId }) : null),
+    [task, statusOrder, milestones, backlogStatusId]
+  )
 
   if (!task) return null
 
@@ -36,6 +41,13 @@ export function HistoryModal({ open, onClose, task }) {
   const first = getStatusHistory(task)[0]
   const partial =
     task.createdAt && first?.at && dayjs(first.at).diff(dayjs(task.createdAt), 'minute') > 1
+  // Un hito en el primer registro de un historial incompleto ocurrió antes, sin fecha exacta.
+  const when = (at) =>
+    !at ? null : partial && at === first.at ? `Antes del ${formatDate(at)}` : formatDateTime(at)
+  const deliveryHint =
+    marks.deliveries.length > 1
+      ? `Entregada ${marks.deliveries.length} veces · primera: ${formatDate(marks.deliveries[0])}`
+      : null
 
   return (
     <Modal
@@ -46,6 +58,21 @@ export function HistoryModal({ open, onClose, task }) {
       description={task.title}
     >
       <div className="flex flex-col gap-6">
+        <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Stat label="Entregada al cliente" value={when(marks.deliveredAt)} hint={deliveryHint} />
+          <Stat label="Cerrada" value={when(marks.closedAt)} />
+          <Stat
+            label="Tiempo del equipo"
+            value={formatDuration(marks.teamMs)}
+            hint="Hasta la entrega, sin contar Backlog"
+          />
+          <Stat
+            label="Revisión del cliente"
+            value={marks.clientMs ? formatDuration(marks.clientMs) : null}
+            hint="Desde la entrega hasta el cierre"
+          />
+        </section>
+
         <section>
           <SectionTitle>Tiempo por estado</SectionTitle>
           <ul className="flex flex-col gap-2">
@@ -126,6 +153,18 @@ export function HistoryModal({ open, onClose, task }) {
         )}
       </div>
     </Modal>
+  )
+}
+
+function Stat({ label, value, hint }) {
+  return (
+    <div className="rounded-lg border border-slate-200 px-3 py-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className={cn('mt-1 text-sm font-semibold', value ? 'text-slate-800' : 'text-slate-400')}>
+        {value || 'Pendiente'}
+      </p>
+      {hint && <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{hint}</p>}
+    </div>
   )
 }
 

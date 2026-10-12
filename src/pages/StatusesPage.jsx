@@ -85,19 +85,25 @@ export function StatusesPage() {
   const toast = useToast()
 
   const [modal, setModal] = useState({ open: false, status: null })
-  const [form, setForm] = useState({ name: '', color: PALETTE[0] })
+  const emptyForm = { name: '', color: PALETTE[0], marksDelivery: false, marksClose: false }
+  const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
   const [confirm, setConfirm] = useState({ open: false, status: null })
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
   const openNew = () => {
-    setForm({ name: '', color: PALETTE[0] })
+    setForm(emptyForm)
     setError('')
     setModal({ open: true, status: null })
   }
   const openEdit = (status) => {
-    setForm({ name: status.name, color: status.color })
+    setForm({
+      name: status.name,
+      color: status.color,
+      marksDelivery: Boolean(status.marksDelivery),
+      marksClose: Boolean(status.marksClose),
+    })
     setError('')
     setModal({ open: true, status })
   }
@@ -107,11 +113,12 @@ export function StatusesPage() {
       setError('El nombre es obligatorio.')
       return
     }
+    const data = { ...form, name: form.name.trim() }
     if (modal.status) {
-      updateStatus(modal.status.id, { name: form.name.trim(), color: form.color })
+      updateStatus(modal.status.id, data)
       toast.success('Estado actualizado.')
     } else {
-      addStatus({ name: form.name.trim(), color: form.color })
+      addStatus(data)
       toast.success('Estado creado.')
     }
     setModal({ open: false, status: null })
@@ -198,6 +205,20 @@ export function StatusesPage() {
               onChange={(color) => setForm((f) => ({ ...f, color }))}
             />
           </Field>
+          <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3">
+            <MarkCheckbox
+              checked={form.marksDelivery}
+              onChange={(v) => setForm((f) => ({ ...f, marksDelivery: v }))}
+              label="Desde este estado, la tarea cuenta como entregada al cliente"
+              current={statuses.find((s) => s.marksDelivery && s.id !== modal.status?.id)}
+            />
+            <MarkCheckbox
+              checked={form.marksClose}
+              onChange={(v) => setForm((f) => ({ ...f, marksClose: v }))}
+              label="Desde este estado, la tarea cuenta como cerrada"
+              current={statuses.find((s) => s.marksClose && s.id !== modal.status?.id)}
+            />
+          </div>
         </div>
       </Modal>
 
@@ -212,5 +233,27 @@ export function StatusesPage() {
         message={confirm.status ? `¿Eliminar el estado “${confirm.status.name}”?` : ''}
       />
     </ManagementLayout>
+  )
+}
+
+/** Casilla de hito: avisa si al marcarla se quitará de otro estado. */
+function MarkCheckbox({ checked, onChange, label, current }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2.5 text-sm text-slate-700">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0 accent-indigo-600"
+      />
+      <span>
+        {label}
+        {checked && current && (
+          <span className="block text-xs text-slate-400">
+            Se quitará de “{current.name}”, que lo tiene ahora.
+          </span>
+        )}
+      </span>
+    </label>
   )
 }

@@ -94,6 +94,10 @@ implementado con Supabase. Ver **"Modo compartido con Supabase"** más abajo.
 - **Historial de estados**: cada cambio de estado (drag & drop o edición) queda
   registrado. El icono de reloj de la tarjeta muestra cuánto tiempo estuvo la
   tarea en cada estado y la línea de tiempo completa, incluidas las vueltas atrás.
+- **Entrega y cierre**: en Estados → editar, un estado puede marcarse como "desde
+  aquí, entregada al cliente" y otro como "desde aquí, cerrada" (por defecto
+  Feedback A y Done). El historial muestra cuándo se entregó y se cerró, el
+  tiempo del equipo hasta la entrega y el tiempo de revisión del cliente.
 - **Gestión de Tipos de Tarea**: nombre, icono (emoji) y color; el color identifica las tarjetas.
 - **Gestión de Responsables**: nombre y color; una tarea puede tener varios.
 - **Tareas**: ID automático, N° de ticket, proyecto, nombre, descripción, estado,
@@ -153,6 +157,9 @@ para este volumen (el tablero pesa kilobytes).
 - Historial de estados: ejecuta
   [`supabase/migrations/002_status_history.sql`](supabase/migrations/002_status_history.sql)
   (añade `tasks.status_history`; las tareas existentes arrancan en su estado actual).
+- Entrega y cierre: ejecuta
+  [`supabase/migrations/003_status_milestones.sql`](supabase/migrations/003_status_milestones.sql)
+  (marca "Feedback A" como entrega y "Done" como cierre; se cambia en Estados).
 - El tablero es **abierto** (sin login): cualquiera con la URL de la app y las
   credenciales puede editar. Suficiente para uso interno; se puede endurecer con
   Supabase Auth más adelante.

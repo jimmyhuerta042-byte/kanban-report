@@ -26,7 +26,11 @@ create table statuses (
   id    text primary key,
   name  text not null,
   color text not null,
-  "order" int  not null default 0
+  "order" int  not null default 0,
+  -- "A partir de aquí": desde este estado (y los siguientes) la tarea cuenta
+  -- como entregada al cliente / cerrada. Como mucho un estado de cada tipo.
+  marks_delivery boolean not null default false,
+  marks_close    boolean not null default false
 );
 
 create table types (
@@ -128,6 +132,9 @@ insert into statuses (id, name, color, "order") values
   ('st-feedbackA', 'Feedback A',       '#3b82f6', 4),
   ('st-feedbackB', 'Feedback B',       '#8b5cf6', 5),
   ('st-done',      'Done',             '#10b981', 6);
+
+update statuses set marks_delivery = true where id = 'st-feedbackA';
+update statuses set marks_close    = true where id = 'st-done';
 
 insert into types (id, name, icon, color) values
   ('ty-bug',         'Bug',           '🐞', '#ef4444'),

@@ -10,9 +10,9 @@ export const seedStatuses = [
   { id: 'st-progress', name: 'In Progress', color: '#22c55e', order: 1 },
   { id: 'st-review', name: 'Code Review', color: '#0ea5e9', order: 2 },
   { id: 'st-testing', name: 'Internal Testing', color: '#f97316', order: 3 },
-  { id: 'st-feedbackA', name: 'Feedback A', color: '#3b82f6', order: 4 },
+  { id: 'st-feedbackA', name: 'Feedback A', color: '#3b82f6', order: 4, marksDelivery: true },
   { id: 'st-feedbackB', name: 'Feedback B', color: '#8b5cf6', order: 5 },
-  { id: 'st-done', name: 'Done', color: '#10b981', order: 6 },
+  { id: 'st-done', name: 'Done', color: '#10b981', order: 6, marksClose: true },
 ]
 
 export const seedTypes = [

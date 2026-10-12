@@ -14,8 +14,22 @@ import { supabase } from './supabase'
 /* ------------------------------- Mappers ---------------------------------- */
 // statuses, assignees, projects son idénticos salvo "order" (palabra reservada).
 
-const rowToStatus = (r) => ({ id: r.id, name: r.name, color: r.color, order: r.order })
-const statusToRow = (s) => ({ id: s.id, name: s.name, color: s.color, order: s.order })
+const rowToStatus = (r) => ({
+  id: r.id,
+  name: r.name,
+  color: r.color,
+  order: r.order,
+  marksDelivery: r.marks_delivery ?? false,
+  marksClose: r.marks_close ?? false,
+})
+const statusToRow = (s) => ({
+  id: s.id,
+  name: s.name,
+  color: s.color,
+  order: s.order,
+  marks_delivery: s.marksDelivery ?? false,
+  marks_close: s.marksClose ?? false,
+})
 
 const rowToType = (r) => ({ id: r.id, name: r.name, icon: r.icon, color: r.color })
 const typeToRow = (t) => ({ id: t.id, name: t.name, icon: t.icon ?? '', color: t.color })
@@ -179,6 +193,8 @@ function mapPartialStatus(data) {
   if ('name' in data) out.name = data.name
   if ('color' in data) out.color = data.color
   if ('order' in data) out.order = data.order
+  if ('marksDelivery' in data) out.marks_delivery = data.marksDelivery
+  if ('marksClose' in data) out.marks_close = data.marksClose
   return out
 }
 
