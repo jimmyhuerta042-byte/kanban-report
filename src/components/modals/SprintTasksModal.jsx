@@ -13,7 +13,7 @@ import { cn } from '../../utils/cn'
  * (p. ej. por retrasos) y añadir tareas sueltas.
  */
 export function SprintTasksModal({ open, sprint, onClose }) {
-  const { tasks, sprints, doneStatusId, moveTasksToSprint } = useBoard()
+  const { tasks, sprints, isTaskDelivered, moveTasksToSprint } = useBoard()
   const toast = useToast()
   const [selected, setSelected] = useState([])
   const [query, setQuery] = useState('')
@@ -31,7 +31,9 @@ export function SprintTasksModal({ open, sprint, onClose }) {
     () => (sprint ? tasks.filter((t) => t.sprintId === sprint.id) : []),
     [tasks, sprint]
   )
-  const pending = own.filter((t) => t.statusId !== doneStatusId)
+  // Pendientes = aún no entregadas. Lo que espera revisión del cliente se queda
+  // en el sprint donde se entregó.
+  const pending = own.filter((t) => !isTaskDelivered(t))
 
   const loose = useMemo(() => {
     const text = query.trim().toLowerCase()
@@ -114,7 +116,7 @@ export function SprintTasksModal({ open, sprint, onClose }) {
             <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
               <ArrowRightLeft size={15} className="shrink-0" />
               <span className="flex-1">
-                {pending.length} tarea(s) sin terminar. Moverlas todas a:
+                {pending.length} tarea(s) sin entregar. Moverlas todas a:
               </span>
               <Select
                 value={carryTo}

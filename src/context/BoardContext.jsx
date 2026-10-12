@@ -426,6 +426,16 @@ export function BoardProvider({ children }) {
     [statuses]
   )
 
+  /** True si la tarea está ahora en el estado de entrega o en uno posterior. */
+  const isTaskDelivered = useCallback(
+    (task) => (statusOrder(task.statusId) ?? -1) >= milestones.deliveryOrder,
+    [statusOrder, milestones]
+  )
+  const isTaskClosed = useCallback(
+    (task) => (statusOrder(task.statusId) ?? -1) >= milestones.closeOrder,
+    [statusOrder, milestones]
+  )
+
   const createTask = useCallback(
     (data) => {
       const now = nowISO()
@@ -620,9 +630,10 @@ export function BoardProvider({ children }) {
     sprints: sortedSprints,
     tasks,
     backlogStatusId,
-    doneStatusId,
     milestones,
     statusOrder,
+    isTaskDelivered,
+    isTaskClosed,
     loading,
     isRemote: REMOTE,
     // estados

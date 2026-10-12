@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { ManagementLayout } from '../layouts/ManagementLayout'
 import { EmptyState } from '../components/ui/EmptyState'
 import { SprintTasksModal } from '../components/modals/SprintTasksModal'
-import { PALETTE } from '../utils/colors'
+import { PALETTE, withAlpha } from '../utils/colors'
 import { SPRINT_PHASES, sprintPhase, formatSprintRange } from '../utils/sprints'
 import { cn } from '../utils/cn'
 import { useBoard } from '../context/BoardContext'
@@ -17,7 +17,15 @@ import { useToast } from '../context/ToastContext'
 const emptyForm = { name: '', goal: '', startDate: '', endDate: '', color: PALETTE[0] }
 
 export function SprintsPage() {
-  const { sprints, tasks, doneStatusId, addSprint, updateSprint, deleteSprint } = useBoard()
+  const {
+    sprints,
+    tasks,
+    isTaskDelivered,
+    isTaskClosed,
+    addSprint,
+    updateSprint,
+    deleteSprint,
+  } = useBoard()
   const toast = useToast()
 
   const [modal, setModal] = useState({ open: false, sprint: null })
@@ -31,7 +39,11 @@ export function SprintsPage() {
   const looseCount = tasks.filter((t) => !t.sprintId).length
   const statsOf = (sprintId) => {
     const own = tasks.filter((t) => t.sprintId === sprintId)
-    return { total: own.length, done: own.filter((t) => t.statusId === doneStatusId).length }
+    return {
+      total: own.length,
+      delivered: own.filter(isTaskDelivered).length,
+      closed: own.filter(isTaskClosed).length,
+    }
   }
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }))
@@ -115,8 +127,8 @@ export function SprintsPage() {
         <div className="flex flex-col gap-2">
           {sprints.map((s) => {
             const phase = SPRINT_PHASES[sprintPhase(s)]
-            const { total, done } = statsOf(s.id)
-            const pct = total ? Math.round((done / total) * 100) : 0
+            const { total, delivered, closed } = statsOf(s.id)
+            const pct = (n) => (total ? (n / total) * 100 : 0)
             return (
               <div
                 key={s.id}
@@ -140,14 +152,19 @@ export function SprintsPage() {
                   </div>
                   {s.goal && <p className="mt-0.5 truncate text-sm text-slate-500">{s.goal}</p>}
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100">
+                    {/* Barra doble: entregadas (claro) y, encima, cerradas (sólido). */}
+                    <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: s.color }}
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{ width: `${pct(delivered)}%`, backgroundColor: withAlpha(s.color, 0.4) }}
+                      />
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{ width: `${pct(closed)}%`, backgroundColor: s.color }}
                       />
                     </div>
-                    <span className="text-xs font-medium" style={{ color: s.color }}>
-                      {done}/{total} terminada(s)
+                    <span className="text-xs font-medium text-slate-500">
+                      {delivered} entregada(s) · {closed} cerrada(s) de {total}
                     </span>
                   </div>
                 </div>
