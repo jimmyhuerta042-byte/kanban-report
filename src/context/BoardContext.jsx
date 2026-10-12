@@ -19,6 +19,7 @@ import {
 } from '../data/seed'
 import { uid } from '../utils/id'
 import { nowISO } from '../utils/dates'
+import { appendStatus } from '../utils/statusHistory'
 import { isSupabaseConfigured } from '../services/supabase'
 import * as db from '../services/db'
 import { useToast } from './ToastContext'
@@ -388,6 +389,7 @@ export function BoardProvider({ children }) {
         backlogAt: data.backlogAt || (isBacklog ? now : null),
         currentStatusStartAt: now,
         currentStatusEndAt: null,
+        statusHistory: [{ statusId, at: now }],
         gitlabUrl: data.gitlabUrl?.trim() || '',
         makahaUrl: data.makahaUrl?.trim() || '',
         notes: data.notes || { content: '', updatedAt: null },
@@ -424,6 +426,7 @@ export function BoardProvider({ children }) {
             next.prevStatusEndAt = now
             next.currentStatusStartAt = now
             next.currentStatusEndAt = null
+            next.statusHistory = appendStatus(t, data.statusId, now)
             if (data.statusId === backlogStatusId && !next.backlogAt) {
               next.backlogAt = now
             }
@@ -479,6 +482,7 @@ export function BoardProvider({ children }) {
             statusId: newStatusId,
             currentStatusStartAt: now,
             currentStatusEndAt: null,
+            statusHistory: appendStatus(t, newStatusId, now),
           }
           if (newStatusId === backlogStatusId && !updated.backlogAt) {
             updated.backlogAt = now

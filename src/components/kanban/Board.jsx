@@ -23,6 +23,7 @@ export function Board({
   onEditTask,
   onDeleteTask,
   onNotesTask,
+  onHistoryTask,
 }) {
   const { statuses, moveTask } = useBoard()
   const [activeTask, setActiveTask] = useState(null)
@@ -83,6 +84,7 @@ export function Board({
               onEditTask={onEditTask}
               onDeleteTask={onDeleteTask}
               onNotesTask={onNotesTask}
+              onHistoryTask={onHistoryTask}
               showSprint={showSprint}
             />
           ))}

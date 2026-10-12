@@ -75,6 +75,8 @@ create table tasks (
   current_status_end_at   timestamptz,
   prev_status_id          text,
   prev_status_end_at      timestamptz,
+  -- Historial de estados: [{ "statusId": "...", "at": "ISO" }, ...]
+  status_history          jsonb not null default '[]'::jsonb,
   gitlab_url              text not null default '',
   makaha_url              text not null default '',
   notes                   jsonb not null default '{"content":"","updatedAt":null}'::jsonb
@@ -83,7 +85,7 @@ create table tasks (
 -- Migración para bases existentes (si ya ejecutaste este schema antes y NO
 -- quieres recrearlo desde cero, ejecuta solo esta línea para añadir las notas):
 --   alter table tasks add column if not exists notes jsonb not null default '{"content":"","updatedAt":null}'::jsonb;
--- Para añadir los sprints a una base existente, usa supabase/migrations/001_sprints.sql.
+-- Para bases existentes, ejecuta en orden los archivos de supabase/migrations/.
 
 -- Contador compartido para el 'code' autoincremental de las tareas.
 create table meta (

@@ -91,6 +91,9 @@ implementado con Supabase. Ver **"Modo compartido con Supabase"** más abajo.
   todas las pendientes al siguiente. El tablero tiene un selector de sprint
   (Todos / Sin sprint / uno concreto) que se recuerda en el navegador y también
   limita el PDF exportado.
+- **Historial de estados**: cada cambio de estado (drag & drop o edición) queda
+  registrado. El icono de reloj de la tarjeta muestra cuánto tiempo estuvo la
+  tarea en cada estado y la línea de tiempo completa, incluidas las vueltas atrás.
 - **Gestión de Tipos de Tarea**: nombre, icono (emoji) y color; el color identifica las tarjetas.
 - **Gestión de Responsables**: nombre y color; una tarea puede tener varios.
 - **Tareas**: ID automático, N° de ticket, proyecto, nombre, descripción, estado,
@@ -147,6 +150,9 @@ para este volumen (el tablero pesa kilobytes).
 - Si ya tenías el schema creado **antes** de los sprints, ejecuta en SQL Editor
   [`supabase/migrations/001_sprints.sql`](supabase/migrations/001_sprints.sql)
   (crea la tabla `sprints` y la columna `tasks.sprint_id` sin tocar tus datos).
+- Historial de estados: ejecuta
+  [`supabase/migrations/002_status_history.sql`](supabase/migrations/002_status_history.sql)
+  (añade `tasks.status_history`; las tareas existentes arrancan en su estado actual).
 - El tablero es **abierto** (sin login): cualquiera con la URL de la app y las
   credenciales puede editar. Suficiente para uso interno; se puede endurecer con
   Supabase Auth más adelante.

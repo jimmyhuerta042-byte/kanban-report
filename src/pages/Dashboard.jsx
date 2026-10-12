@@ -3,6 +3,7 @@ import { Board } from '../components/kanban/Board'
 import { FilterBar } from '../components/filters/FilterBar'
 import { TaskModal } from '../components/modals/TaskModal'
 import { NotesModal } from '../components/modals/NotesModal'
+import { HistoryModal } from '../components/modals/HistoryModal'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { useBoard } from '../context/BoardContext'
 import { useToast } from '../context/ToastContext'
@@ -73,6 +74,8 @@ export function Dashboard() {
   // Guardamos solo el id: así el modal siempre lee la versión viva de la tarea.
   const openNotes = (task) => setNotesTaskId(task.id)
   const notesTask = notesTaskId ? tasks.find((t) => t.id === notesTaskId) || null : null
+  const [historyTaskId, setHistoryTaskId] = useState(null)
+  const historyTask = historyTaskId ? tasks.find((t) => t.id === historyTaskId) || null : null
 
   const handleExport = async () => {
     if (filtered.length === 0) {
@@ -138,6 +141,7 @@ export function Dashboard() {
             onEditTask={openEdit}
             onDeleteTask={(task) => setConfirm({ open: true, task })}
             onNotesTask={openNotes}
+            onHistoryTask={(task) => setHistoryTaskId(task.id)}
           />
         )}
       </div>
@@ -154,6 +158,12 @@ export function Dashboard() {
         open={Boolean(notesTask)}
         task={notesTask}
         onClose={() => setNotesTaskId(null)}
+      />
+
+      <HistoryModal
+        open={Boolean(historyTask)}
+        task={historyTask}
+        onClose={() => setHistoryTaskId(null)}
       />
 
       <ConfirmDialog

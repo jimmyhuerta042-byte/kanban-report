@@ -8,6 +8,7 @@ import {
   Trash2,
   StickyNote,
   Flag,
+  History,
 } from 'lucide-react'
 import { useBoard } from '../../context/BoardContext'
 import { AssigneeChip } from '../ui/Badge'
@@ -19,7 +20,15 @@ import { cn } from '../../utils/cn'
 /**
  * Tarjeta de tarea del tablero. Arrastrable mediante dnd-kit.
  */
-export function TaskCard({ task, onEdit, onDelete, onNotes, showSprint = true, overlay = false }) {
+export function TaskCard({
+  task,
+  onEdit,
+  onDelete,
+  onNotes,
+  onHistory,
+  showSprint = true,
+  overlay = false,
+}) {
   const { getType, getAssignees, getProject, getSprint } = useBoard()
   const type = getType(task.typeId)
   const people = getAssignees(task.assigneeIds)
@@ -129,6 +138,17 @@ export function TaskCard({ task, onEdit, onDelete, onNotes, showSprint = true, o
         </span>
 
         <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              stop(e)
+              onHistory?.(task)
+            }}
+            onPointerDown={stop}
+            title="Historial de estados"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+          >
+            <History size={14} />
+          </button>
           <button
             onClick={(e) => {
               stop(e)

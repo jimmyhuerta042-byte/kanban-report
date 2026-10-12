@@ -17,6 +17,7 @@ export function Column({
   onEditTask,
   onDeleteTask,
   onNotesTask,
+  onHistoryTask,
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
@@ -67,6 +68,7 @@ export function Column({
               onEdit={onEditTask}
               onDelete={onDeleteTask}
               onNotes={onNotesTask}
+              onHistory={onHistoryTask}
               showSprint={showSprint}
             />
           ))}
