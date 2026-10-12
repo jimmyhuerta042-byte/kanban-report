@@ -10,6 +10,31 @@ import { useFilteredTasks, emptyFilters } from '../hooks/useFilteredTasks'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { exportBoardPDF } from '../services/pdf'
 import { NO_SPRINT, formatSprintRange } from '../utils/sprints'
+import { formatDate, inputDateToISO } from '../utils/dates'
+
+/**
+ * Resume en inglés (como el resto del PDF) los filtros activos, para que quien
+ * lea el PDF sepa que no está viendo todas las tareas. Vacío si no hay filtros.
+ */
+function describeFilters(filters, { getAssignees, getProject, getStatus, getType }) {
+  const parts = []
+  const text = filters.text.trim()
+  if (text) parts.push(`Search: "${text}"`)
+  const assignee = getAssignees([filters.assigneeId])[0]
+  if (assignee) parts.push(`Assignee: ${assignee.name}`)
+  const project = getProject(filters.projectId)
+  if (project) parts.push(`Project: ${project.name}`)
+  const status = getStatus(filters.statusId)
+  if (status) parts.push(`Status: ${status.name}`)
+  const type = getType(filters.typeId)
+  if (type) parts.push(`Type: ${type.name}`)
+  const from = formatDate(inputDateToISO(filters.from))
+  const to = formatDate(inputDateToISO(filters.to))
+  if (from && to) parts.push(`Backlog: ${from} – ${to}`)
+  else if (from) parts.push(`Backlog from ${from}`)
+  else if (to) parts.push(`Backlog until ${to}`)
+  return parts.length ? `Filtered by: ${parts.join('   ·   ')}` : ''
+}
 
 export function Dashboard() {
   const {
@@ -20,6 +45,7 @@ export function Dashboard() {
     getAssignees,
     getProject,
     getSprint,
+    getStatus,
     loading,
   } = useBoard()
   const toast = useToast()
@@ -62,7 +88,15 @@ export function Dashboard() {
         : sprintId === NO_SPRINT
           ? 'Tasks without sprint'
           : ''
-      await exportBoardPDF(filtered, { statuses, getType, getAssignees, getProject, scope })
+      const filtersLine = describeFilters(filters, { getAssignees, getProject, getStatus, getType })
+      await exportBoardPDF(filtered, {
+        statuses,
+        getType,
+        getAssignees,
+        getProject,
+        scope,
+        filtersLine,
+      })
       toast.success(`PDF generado con ${filtered.length} tarea(s).`)
     } catch (err) {
       console.error(err)

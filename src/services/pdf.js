@@ -41,7 +41,7 @@ function truncate(doc, text, maxW) {
  */
 export async function exportBoardPDF(
   tasks,
-  { statuses, getType, getAssignees, getProject, scope = '' }
+  { statuses, getType, getAssignees, getProject, scope = '', filtersLine = '' }
 ) {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
   const PAGE_W = doc.internal.pageSize.getWidth()
@@ -88,8 +88,16 @@ export async function exportBoardPDF(
     { align: 'center' }
   )
 
-  // Línea separadora
-  const headerBottom = headerTop + logoMaxH + 12
+  // Filtros activos (solo si los hay), recortados para no invadir los logos.
+  if (filtersLine) {
+    doc.setFontSize(8)
+    doc.setTextColor(79, 70, 229)
+    const maxW = PAGE_W - 2 * (MARGIN + logoMaxW + 10)
+    doc.text(truncate(doc, filtersLine, maxW), PAGE_W / 2, headerTop + 41, { align: 'center' })
+  }
+
+  // Línea separadora (más abajo si hay línea de filtros)
+  const headerBottom = headerTop + logoMaxH + (filtersLine ? 20 : 12)
   doc.setDrawColor(226, 232, 240)
   doc.setLineWidth(1)
   doc.line(MARGIN, headerBottom, PAGE_W - MARGIN, headerBottom)
