@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { CheckCircle2, XCircle, Info, X } from 'lucide-react'
 import { uid } from '../utils/id'
 import { cn } from '../utils/cn'
@@ -36,11 +36,16 @@ export function ToastProvider({ children }) {
     [remove]
   )
 
-  const toast = {
-    success: (m, d) => push(m, 'success', d),
-    error: (m, d) => push(m, 'error', d),
-    info: (m, d) => push(m, 'info', d),
-  }
+  // Referencia estable: quien dependa de `toast` en un efecto (p. ej. la carga
+  // del tablero) no debe re-ejecutarse cada vez que aparece un aviso.
+  const toast = useMemo(
+    () => ({
+      success: (m, d) => push(m, 'success', d),
+      error: (m, d) => push(m, 'error', d),
+      info: (m, d) => push(m, 'info', d),
+    }),
+    [push]
+  )
 
   return (
     <ToastContext.Provider value={toast}>
